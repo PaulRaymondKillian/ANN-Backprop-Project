@@ -1,0 +1,15 @@
+### Backprop Identification ###
+ID=0-B
+File Title=SpeedTest
+
+### Input Files - !!! NEVER MODIFY THIS PART !!! ###
+DO NOT MODIFY: Dataset file location=C:\SP\Test\Test.DATA
+DO NOT MODIFY: ANN file location=C:\Killian Intelligence Systems\Population_Backprop_App\242.599_SpeedTest_021110\242.599_SpeedTest_021110.ANN
+
+### Training Configuration ###
+Initial rho value=0.001
+Rho multiplier=0.99999
+Rho interval=100
+Use Momentum=False
+Momentum scaler=0.3
+Simulated annealing max percent(%)=1

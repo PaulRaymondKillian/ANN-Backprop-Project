@@ -1,0 +1,573 @@
+﻿''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'' Project: Artificial Neural Network Error Backwards-Propagation Project	    		''
+'' Component: Population Object     													''
+'' Description: This application is used to train a large population of artificial      ''
+''              neural networks and utilize a genetic algorithm to evolve the population''
+''              of networks to produce better and better trained networks, ultimately   ''
+''              resulting in a network that will be saved and used for future           ''
+''              processing. This object uses the Backprop object.                       ''
+''																						''
+'' Author: Paul Killian																	''
+'' Contact: PaulKillian@DecodedCortex.com												''
+'' Website: www.DecodedCortex.com														''
+'' Disclaimer: Any non-commercial use of this code or a derivative therof must give     ''
+''              credit to those who developed it (Decoded Cortex). Any commercial use of''
+''              this code or the application themselves is now allowed unless authorized''
+''              by Decoded Cortex.                                                      ''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+Option Strict On
+
+Imports System.IO
+
+Public Class Population
+    Private Const _CLASSNAME As String = "Population"
+    Private BackpropParms(10) As String
+    Private Population() As Backprop.Backprop
+    Private PopulationSize As Integer
+    Private Generations As Integer
+    Private EpochsPerGeneration As Integer
+    Private NewGenerationMethod As Integer
+    Private CurrentDirectory As String
+    Private GenSaveInterval As Integer
+    Private FileTitle As String
+    Private BestBackprop As Backprop.Backprop
+    Private BestBackpropFitness() As Double
+    Private AvgGenerationFitness() As Double
+    Private Started As DateTime
+    Private VerboseLogging As Boolean
+
+    'Create Exemplar Set to be passed by reference
+    Public DataSetFile As String
+    Public exemplarCount As Integer
+    Public exemplarInputs(,) As Double
+    Public exemplarOutputs(,) As Double
+    Public countInputNeurons, countOutputNeurons As Integer
+
+    Dim ConsoleLibrary As New Console_Library.Console_Library   'Used to change text color in console
+
+    Public Sub New(ByVal filepath As String)
+        Dim _METHODNAME As String = "New(filePath)"
+        Console.WriteLine()
+        Console.WriteLine("Creating Population...")
+
+        importPopFile(filepath)
+        DeconstructCurrentDirectory(filepath)
+        Started = Now
+        importDataSet(DataSetFile)
+        ReDim Population(PopulationSize - 1)
+        Try
+            'Initialize Backprop Objects of Population
+            Console.Write(PopulationSize & " Total: ")
+            For i As Integer = 0 To PopulationSize - 1
+                Console.Write(i & " ")
+                Population(i) = New Backprop.Backprop(BackpropParms, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+                Population(i).ID = i.ToString
+            Next
+
+            'Set BestBackprop object to its initial value which will be over-written later
+            BestBackprop = Population(0).Copy
+            BestBackprop.Fitness = Double.MaxValue  'Set to max value so it will always be overwritten
+            Console.WriteLine()
+            Console.WriteLine("Population Created!")
+
+            RunGenerations()
+
+        Catch ex As Exception
+            Throw New Exception("Error - Class: " & _CLASSNAME & " Method: " & _METHODNAME & " Descr: Error creating population; input file may be invalid or corrupt.")
+        End Try
+    End Sub
+
+    Public Sub RunPopulation(ByVal Epochs As Integer)
+        Dim previousFitness As Double
+        Dim currentFitness As Double
+        For i As Integer = 0 To PopulationSize - 1
+            Population(i).calcFitness()
+            previousFitness = Population(i).Fitness
+            ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.Gray)
+            Population(i).Train(Epochs, VerboseLogging)
+            Population(i).calcFitness()
+            currentFitness = Population(i).Fitness
+            If currentFitness - previousFitness < 0 Then
+                ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.Green)
+            ElseIf currentFitness - previousFitness > 0 Then
+                ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.Red)
+            Else
+                ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.White)
+            End If
+            Console.WriteLine(Population(i).ID & ": " & currentFitness & "   PrvFit: " & previousFitness & "    Diff: " & currentFitness - previousFitness & " Avg: " & currentFitness / Population(i).exemplarCount)
+        Next
+    End Sub
+
+    Public Sub SortPopulation()
+        Dim sortedPopulation(PopulationSize - 1) As Backprop.Backprop
+        Dim sortedArray(PopulationSize - 1) As Boolean  'Set to false by default
+        Dim bestFitnessValue As Double
+        Dim bestFitnessIndex As Integer = -1
+
+        'Selection Sort Algorithm
+        For i As Integer = 0 To PopulationSize - 1
+            bestFitnessValue = Double.MaxValue
+            For j As Integer = 0 To PopulationSize - 1
+                If Population(j).Fitness < bestFitnessValue And Not sortedArray(j) Then
+                    bestFitnessValue = Population(j).Fitness
+                    bestFitnessIndex = j
+                End If
+            Next
+            sortedPopulation(i) = Population(bestFitnessIndex)
+            sortedArray(bestFitnessIndex) = True
+        Next
+
+        Population = sortedPopulation
+    End Sub
+
+    Public Sub NewPopulation(ByVal GenerationMethod As Integer)
+        Try
+            If GenerationMethod = 1 Then
+                Population = GenerateNewPopulation1(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            ElseIf GenerationMethod = 2 Then
+                Population = GenerateNewPopulation2(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            ElseIf GenerationMethod = 3 Then
+                Population = GenerateNewPopulation3(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            ElseIf GenerationMethod = 4 Then
+                Population = GenerateNewPopulation4(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            ElseIf GenerationMethod = 5 Then
+                Population = GenerateNewPopulation5(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            ElseIf GenerationMethod = 6 Then
+                Population = GenerateNewPopulation6(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            ElseIf GenerationMethod = 7 Then
+                Population = GenerateNewPopulation7(Population, BackpropParms, BestBackprop, exemplarInputs, exemplarOutputs, exemplarCount, countInputNeurons, countOutputNeurons)
+            Else
+                Throw New Exception("Error - Class: " & _CLASSNAME & ", Method: NewPopulation(int), Desc: Invalid Value for New Generation Method: " & GenerationMethod)
+            End If
+        Catch ex As Exception
+            Throw ex
+        End Try
+
+    End Sub
+
+    Public Sub RunGeneration(ByVal EpochsToRun As Integer, ByVal NewGenerationMethod As Integer, ByVal GenerateNewPopulation As Boolean)
+        RunPopulation(EpochsToRun)
+        SortPopulation()
+        RetainBestBackprop()
+        If GenerateNewPopulation Then
+            ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.White)
+            NewPopulation(NewGenerationMethod)
+        End If
+    End Sub
+
+    Public Sub RunGenerations()
+
+        ReDim BestBackpropFitness(Generations - 1)
+        ReDim AvgGenerationFitness(Generations)
+
+        Console.WriteLine("Calculating Initial Average Population Fitness...")
+        AvgGenerationFitness(0) = AveragePopulationFitness()
+        Console.WriteLine("Initial Average Population Fitness Calculated!")
+
+        For i As Integer = 0 To Generations - 1
+            ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.Yellow)
+            Console.WriteLine("Generation: " & i & "    Best-Rho: " & Population(0).rho & "  BestBackprop: " & BestBackprop.Fitness)
+            If i < Generations - 1 Then
+                RunGeneration(EpochsPerGeneration, NewGenerationMethod, True)
+            Else
+                RunGeneration(EpochsPerGeneration, NewGenerationMethod, False)
+            End If
+            BestBackpropFitness(i) = BestBackprop.Fitness
+
+            ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.WhiteForte)
+            Console.WriteLine("Calculating Average Population Fitness...")
+            AvgGenerationFitness(i + 1) = AveragePopulationFitness()
+            Console.WriteLine("Average Population Fitness Calculated!")
+
+            'Save the Population Data if Save Interval 
+            If i = Generations - 1 Then
+                SavePopData(True)
+            ElseIf i Mod GenSaveInterval = 0 Then
+                SavePopData(False)
+            End If
+        Next
+    End Sub
+
+    Public Sub importPopFile(ByVal filepath As String)
+        Dim sr As StreamReader
+        Dim line As String
+        Dim readLine() As String
+        Try
+            sr = File.OpenText(filepath)
+
+            sr.ReadLine()   'Buffer
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            DataSetFile = readLine(1)  'Dats Set File Location
+            BackpropParms(0) = DataSetFile
+
+            sr.ReadLine()   'Buffer
+            sr.ReadLine()   'Buffer
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            PopulationSize = (Convert.ToInt32(readLine(1)))
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            Generations = Convert.ToInt32((readLine(1)))
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            EpochsPerGeneration = Convert.ToInt32((readLine(1)))
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            NewGenerationMethod = Convert.ToInt32((readLine(1)))
+
+            sr.ReadLine()   'Buffer
+            sr.ReadLine()   'Buffer
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(1) = readLine(1)  'Hidden Neurons
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(2) = readLine(1)  'Hidden Layers
+
+            sr.ReadLine()   'Buffer
+            sr.ReadLine()   'Buffer
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(3) = readLine(1)  'Max Weight Value
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(4) = readLine(1)  'Max Bias Value
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(5) = readLine(1)  'Rho
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(6) = readLine(1)  'Rho Multiplier
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(7) = readLine(1)  'Dynamic Rho Interval
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(8) = readLine(1)  'Use Momentum
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(9) = readLine(1)  'Momentum Scaler
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            BackpropParms(10) = readLine(1)  'Sim Annealing Max Percent
+
+            sr.ReadLine()   'Buffer
+            sr.ReadLine()   'Buffer
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            GenSaveInterval = Convert.ToInt32(readLine(1))
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            FileTitle = (readLine(1))
+
+            sr.ReadLine()   'Buffer
+            sr.ReadLine()   'Buffer
+
+            line = sr.ReadLine
+            readLine = line.Split("="c)
+            If readLine.Count <> 2 Then
+                Throw New Exception("Error - ANN_Fast_Backprop_PopulationApp    Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+                Exit Sub
+            End If
+            If readLine(1).ToUpper = "TRUE" Or readLine(1).ToUpper = "T" Then
+                VerboseLogging = True
+            Else
+                VerboseLogging = False
+            End If
+
+        Catch ex As Exception
+            Throw New Exception("Error - Population File is Invalid or Corrupt")
+        End Try
+    End Sub
+
+    Public Sub SavePopData(ByVal OutputToConsole As Boolean)
+        ConsoleLibrary.SetColor(Console_Library.Console_Library.ConsoleColor.White)
+
+        'BestBackprop.calcFitness()
+        BestBackprop.calcFitness()
+
+        Console.WriteLine("Saving data to: " & CurrentDirectory & GenerateSaveName() & "\")
+
+
+        'Try
+        '    Directory.CreateDirectory(CurrentDirectory & GenerateSaveName())
+        '    If OutputToConsole Then
+        '        OutputPopulationData(CurrentDirectory & GenerateSaveName() & "\ProcessOutput.txt")
+        '    End If
+        '    BestBackprop.outputNetwork(CurrentDirectory & GenerateSaveName() & "\" & GenerateSaveName() & ".ANN")
+        '    BestBackprop.outputNetworkOutput(CurrentDirectory & GenerateSaveName() & "\" & GenerateSaveName() & ".txt")
+        '    BestBackprop.outputBPROPFile(CurrentDirectory & GenerateSaveName() & "\" & GenerateSaveName() & ".BPROP", FileTitle)
+        '    WritePOPFile(CurrentDirectory & GenerateSaveName() & "\" & GenerateSaveName() & ".POP")
+        'Catch ex As Exception
+
+        'End Try
+        'Console.WriteLine("Data Saved Successfully!")
+    End Sub
+
+    Public Sub RetainBestBackprop()
+        Population(0).calcFitness()
+        BestBackprop.calcFitness()
+        If Population(0).Fitness < BestBackprop.Fitness Or Double.IsNaN(BestBackprop.Fitness) Then
+            BestBackprop = Population(0).Copy
+            BestBackprop.ID = BestBackprop.ID & "-B"
+            BestBackprop.calcFitness()
+        End If
+    End Sub
+
+    Public Function AveragePopulationFitness() As Double
+        Dim totalFitness As Double = 0
+        For i As Integer = 0 To PopulationSize - 1
+            Population(i).calcFitness()
+            totalFitness += Population(i).Fitness
+        Next
+        Return (totalFitness / PopulationSize)
+    End Function
+
+    Public Sub WritePOPFile(ByVal filePath As String)
+        Dim sw As New StreamWriter(filePath)
+        sw.WriteLine("### Data Set ###")
+        sw.WriteLine("Dataset file location=" & BackpropParms(0))
+        sw.WriteLine("")
+        sw.WriteLine("### Population Configuration ###")
+        sw.WriteLine("Population Size=" & PopulationSize)
+        sw.WriteLine("Generations=" & Generations)
+        sw.WriteLine("Epochs Per Generation=" & EpochsPerGeneration)
+        sw.WriteLine("New Generation Method=" & NewGenerationMethod)
+        sw.WriteLine("")
+        sw.WriteLine("### Network Topology ###")
+        sw.WriteLine("Hidden Neurons=" & BackpropParms(1))
+        sw.WriteLine("Hidden Layers=" & BackpropParms(2))
+        sw.WriteLine("")
+        sw.WriteLine("### Training Configuation ###")
+        sw.WriteLine("Max weight value=" & BackpropParms(3))
+        sw.WriteLine("Max bias value=" & BackpropParms(4))
+        sw.WriteLine("Initial rho value=" & BackpropParms(5))
+        sw.WriteLine("Rho multiplier=" & BackpropParms(6))
+        sw.WriteLine("Dynamic rho interval=" & BackpropParms(7))
+        sw.WriteLine("Use Momentum=" & BackpropParms(8))
+        sw.WriteLine("Momentum Scaler=" & BackpropParms(9))
+        sw.WriteLine("Simulated annealing max percent(%)=" & BackpropParms(10))
+        sw.WriteLine("")
+        sw.WriteLine("### Save Data Settings ###")
+        sw.WriteLine("Generation Save Interval=" & GenSaveInterval)
+        sw.WriteLine("File Title=" & FileTitle)
+        sw.WriteLine("")
+        sw.WriteLine("### Console Logging ###")
+        sw.WriteLine("Verbose Logging=" & VerboseLogging)
+        sw.Close()
+    End Sub
+
+    Public Sub OutputPopulationData(ByVal FilePath As String)
+        Dim Finished As DateTime
+        Finished = Now
+        Dim TimeElapsed As TimeSpan
+        TimeElapsed = Finished - Started
+
+        Dim sw As New StreamWriter(FilePath)
+        sw.WriteLine("ANN_Fast_Backprop_Dynamic_Population")
+        sw.WriteLine()
+        Console.WriteLine("BestBackprop ID: " & BestBackprop.ID & "   BestBackprop Fitness:" & BestBackprop.Fitness)
+        sw.WriteLine("BestBackprop ID: " & BestBackprop.ID & "   BestBackprop Fitness:" & BestBackprop.Fitness)
+        sw.WriteLine()
+        Console.WriteLine("Initial Population Avg Fitness: " & AvgGenerationFitness(0))
+        sw.WriteLine("Initial Population Avg Fitness: " & AvgGenerationFitness(0))
+        For i As Integer = 0 To BestBackpropFitness.Length - 1
+            Console.WriteLine("Best Backprop Fitness Generation " & i & ": " & BestBackpropFitness(i) & "   AvgFitness: " & AvgGenerationFitness(i + 1))
+            sw.WriteLine("Best Backprop Fitness Generation " & i & ": " & BestBackpropFitness(i) & "   AvgFitness: " & AvgGenerationFitness(i + 1))
+        Next
+        sw.WriteLine()
+        Console.WriteLine("Processed In: " & Convert.ToInt32(TimeElapsed.Hours) & " Hours, " & Convert.ToInt32(TimeElapsed.Minutes) & " Minutes, " & Convert.ToInt32(TimeElapsed.Seconds) & " Seconds.")
+        sw.WriteLine("Processed In: " & Convert.ToInt32(TimeElapsed.Hours) & " Hours, " & Convert.ToInt32(TimeElapsed.Minutes) & " Minutes, " & Convert.ToInt32(TimeElapsed.Seconds) & " Seconds.")
+
+        sw.Close()
+    End Sub
+
+    Public Sub importDataSet(ByVal filePath As String)
+        Const _MethodName As String = "importDataSet(filePath)"
+        Dim line As String
+        Dim inputs() As String
+        Dim sInputValues() As String
+        Dim sOutputValues() As String
+        exemplarCount = numRowsInTextFile(filePath)
+
+        Dim sr As StreamReader = File.OpenText(filePath)
+        line = sr.ReadLine
+
+        inputs = line.Split("="c)
+
+        If inputs.Count <> 2 Then
+            Throw New Exception("Error - Method: " & _MethodName & _
+                                        "Descr: Invalid contents of input file. Inputs and DesiredOutput should be delimited by a single '=' character")
+            Exit Sub
+        End If
+
+        sInputValues = inputs(0).Split(","c)
+        sOutputValues = inputs(1).Split(","c)
+
+        countInputNeurons = Convert.ToInt32(sInputValues.Count)
+        ReDim exemplarInputs(exemplarCount - 1, countInputNeurons - 1)
+        countOutputNeurons = Convert.ToInt32(sOutputValues.Count)
+        ReDim exemplarOutputs(exemplarCount - 1, countOutputNeurons - 1)
+
+        For i As Integer = 0 To exemplarCount - 1
+
+            For k As Integer = 0 To countInputNeurons - 1
+                exemplarInputs(i, k) = Convert.ToDouble(sInputValues(k))
+            Next
+
+            For k As Integer = 0 To countOutputNeurons - 1
+                exemplarOutputs(i, k) = Convert.ToDouble(sOutputValues(k))
+            Next
+
+            line = sr.ReadLine
+
+            If Not line = Nothing Then
+                inputs = line.Split("="c)
+
+                If inputs.Count <> 2 Then
+                    Throw New Exception("Error - Method: " & _MethodName & _
+                                        "Descr: Data File invalid or corrupt")
+
+                    Exit Sub
+                End If
+
+                sInputValues = inputs(0).Split(","c)
+                sOutputValues = inputs(1).Split(","c)
+            End If
+
+        Next
+
+        sr.Close()
+
+    End Sub
+
+    Public Function numRowsInTextFile(ByVal filePath As String) As Integer
+        Dim sr As StreamReader = File.OpenText(filePath)
+        Dim rows As Integer = 0
+        Dim line As String
+
+        Do
+            line = sr.ReadLine
+            rows += 1
+        Loop Until sr.EndOfStream
+
+        Return rows
+
+    End Function
+
+    Public Sub DeconstructCurrentDirectory(ByVal filepath As String)
+        Dim split() As String
+
+        'Extract the Directory Path
+        split = filepath.Split("\"c)
+        For i As Integer = 0 To split.Length - 2
+            If i = 0 Then
+                CurrentDirectory = split(i) & "\"
+            Else
+                CurrentDirectory += split(i) & "\"
+            End If
+        Next
+    End Sub
+
+    Public Function GenerateSaveName() As String
+        Dim AvgError, Dt As String
+        BestBackprop.calcFitness()
+
+        'Create Average Error String
+        AvgError = Math.Round((BestBackprop.Fitness / BestBackprop.exemplarCount), 3).ToString
+
+        'Create Date String
+        Dim CurrentDate As Date = Now
+        Dt = CurrentDate.Month.ToString.PadLeft(2, "0"c) & CurrentDate.Day.ToString.PadLeft(2, "0"c) & CurrentDate.Year.ToString.Substring(2)
+
+        Return AvgError & "_" & FileTitle & "_" & Dt
+
+    End Function
+
+End Class

@@ -1,0 +1,29 @@
+### Data Set ###
+Dataset file location=C:\SP\Test\Test.DATA
+
+### Population Configuration ###
+Population Size=1
+Generations=10
+Epochs Per Generation=50
+New Generation Method=5
+
+### Network Topology ###
+Hidden Neurons=100
+Hidden Layers=2
+
+### Training Configuation ###
+Max weight value=1
+Max bias value= 1
+Initial rho value=0.001
+Rho multiplier=0.99999
+Dynamic rho interval=100
+Use Momentum=False
+Momentum Scaler=0.3
+Simulated annealing max percent(%)=1
+
+### Save Data Settings ###
+Generation Save Interval=10
+File Title=SpeedTest
+
+### Console Logging ###
+Verbose Logging=True

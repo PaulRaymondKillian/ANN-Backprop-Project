@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1">
+  <asmv1:assemblyIdentity name="Backprop_Process_App.exe" version="1.0.0.1" publicKeyToken="561343f259e42809" language="neutral" processorArchitecture="msil" type="win32" />
+  <description asmv2:iconFile="StockPickerCherry.ico" xmlns="urn:schemas-microsoft-com:asm.v1" />
+  <application />
+  <entryPoint>
+    <assemblyIdentity name="Backprop_Process_App" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+    <commandLine file="Backprop_Process_App.exe" parameters="" />
+  </entryPoint>
+  <trustInfo>
+    <security>
+      <applicationRequestMinimum>
+        <PermissionSet Unrestricted="true" ID="Custom" SameSite="site" />
+        <defaultAssemblyRequest permissionSetReference="Custom" />
+      </applicationRequestMinimum>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <!--
+          UAC Manifest Options
+          If you want to change the Windows User Account Control level replace the 
+          requestedExecutionLevel node with one of the following.
+
+        <requestedExecutionLevel  level="asInvoker" uiAccess="false" />
+        <requestedExecutionLevel  level="requireAdministrator" uiAccess="false" />
+        <requestedExecutionLevel  level="highestAvailable" uiAccess="false" />
+
+         If you want to utilize File and Registry Virtualization for backward 
+         compatibility then delete the requestedExecutionLevel node.
+    -->
+        <requestedExecutionLevel level="asInvoker" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <dependency>
+    <dependentOS>
+      <osVersionInfo>
+        <os majorVersion="5" minorVersion="1" buildNumber="2600" servicePackMajor="0" />
+      </osVersionInfo>
+    </dependentOS>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="preRequisite" allowDelayedBinding="true">
+      <assemblyIdentity name="Microsoft.Windows.CommonLanguageRuntime" version="2.0.50727.0" />
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="preRequisite" allowDelayedBinding="true">
+      <assemblyIdentity name="System.Core" version="3.5.0.0" publicKeyToken="b77a5c561934e089" language="neutral" processorArchitecture="msil" />
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="preRequisite" allowDelayedBinding="true">
+      <assemblyIdentity name="WindowsBase" version="3.0.0.0" publicKeyToken="31bf3856ad364e35" language="neutral" processorArchitecture="msil" />
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Backprop.dll" size="25600">
+      <assemblyIdentity name="Backprop" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <dsig:DigestValue>IRXZ4XJKTQwGjJgu1QlwF3Eunwo=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Backprop_Process_App.exe" size="98816">
+      <assemblyIdentity name="Backprop_Process_App" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <dsig:DigestValue>8XbRBKwBbkq+lNnow4sL+dmNO/M=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Console_Library.dll" size="15360">
+      <assemblyIdentity name="Console_Library" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <dsig:DigestValue>DuBWv4ZoZtt29kSahHtSzvaTp6U=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <file name="StockPickerCherry.ico" size="84038">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <dsig:DigestValue>+3bWXvaZkdAkCZTbUH/nY0KX00s=</dsig:DigestValue>
+    </hash>
+  </file>
+<publisherIdentity name="CN=Killian-PC\Killian" issuerKeyHash="95372fddfee98abd32a72a7700c047b64d237d04" /><Signature Id="StrongNameSignature" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>Sgi5UT2mO00EvRsT+cDLLlXQkT0=</DigestValue></Reference></SignedInfo><SignatureValue>aPquk8z2mBZgTAw4lZtM16RGZDXIZ0RvSkVKqgnOqQqeatBVlhTFVP+7YRIvI6CAxQyxS9WJ4ZoP+W8bsGad3qKNW+8iihFuiO83zWk8A4oC+gHgbBnzccUxTSHUYJ5yEZefMW4GpkwbiZf+LTityEauwkg1F6ukQz/F7c/PIDk=</SignatureValue><KeyInfo Id="StrongNameKeyInfo"><KeyValue><RSAKeyValue><Modulus>qVtK3ViR9SsiPA1BefiNEhwNdi7fjgUqLJY1cDmiI7oV0Az92pRRJ2GMQOg8N/uOfSuBAhS3UNMNtPzeoa39/nH3W9uK+r4wbNU1qbJK75iK+ccRnb+5oSH24Ewv21dg9NnvOLe2Xd00jjd+CdFh3gSD3Ff6jo8/DEqK5Ed1u1E=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><msrel:RelData xmlns:msrel="http://schemas.microsoft.com/windows/rel/2005/reldata"><r:license xmlns:r="urn:mpeg:mpeg21:2003:01-REL-R-NS" xmlns:as="http://schemas.microsoft.com/windows/pki/2005/Authenticode"><r:grant><as:ManifestInformation Hash="3d91d0552ecbc0f9131bbd044d3ba63d51b9084a" Description="" Url=""><as:assemblyIdentity name="Backprop_Process_App.exe" version="1.0.0.1" publicKeyToken="561343f259e42809" language="neutral" processorArchitecture="msil" type="win32" /></as:ManifestInformation><as:SignedBy /><as:AuthenticodePublisher><as:X509SubjectName>CN=Killian-PC\Killian</as:X509SubjectName></as:AuthenticodePublisher></r:grant><r:issuer><Signature Id="AuthenticodeSignature" xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1" /><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" /><Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" /></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" /><DigestValue>X4KzLEwTYIGOXWPvH2IYKWBgUwE=</DigestValue></Reference></SignedInfo><SignatureValue>Pks3sbIMrVLPsFLCvAExQ7rwdyNqNCe3qUCRVVY06tsoDODoebdYN57Gb5R3MArBwm/bMVUG+bLwukbY1Q4lOVKiwtYCELfHmaeSDGX8OfS5PxkJyIEz9OSOpgxKvNhfTwKW71cPlBdHDTmR0P9C3Gygrvc9yQctecalCB7xdz8=</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>qVtK3ViR9SsiPA1BefiNEhwNdi7fjgUqLJY1cDmiI7oV0Az92pRRJ2GMQOg8N/uOfSuBAhS3UNMNtPzeoa39/nH3W9uK+r4wbNU1qbJK75iK+ccRnb+5oSH24Ewv21dg9NnvOLe2Xd00jjd+CdFh3gSD3Ff6jo8/DEqK5Ed1u1E=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><X509Data><X509Certificate>MIIB4TCCAUqgAwIBAgIQTe4atUlN5JJAkFpsKFZJ/DANBgkqhkiG9w0BAQUFADAvMS0wKwYDVQQDHiQASwBpAGwAbABpAGEAbgAtAFAAQwBcAEsAaQBsAGwAaQBhAG4wHhcNMDkxMjA2MTQ0MDU5WhcNMTAxMjA2MjA0MDU5WjAvMS0wKwYDVQQDHiQASwBpAGwAbABpAGEAbgAtAFAAQwBcAEsAaQBsAGwAaQBhAG4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAKlbSt1YkfUrIjwNQXn4jRIcDXYu344FKiyWNXA5oiO6FdAM/dqUUSdhjEDoPDf7jn0rgQIUt1DTDbT83qGt/f5x91vbivq+MGzVNamySu+YivnHEZ2/uaEh9uBML9tXYPTZ7zi3tl3dNI43fgnRYd4Eg9xX+o6PPwxKiuRHdbtRAgMBAAEwDQYJKoZIhvcNAQEFBQADgYEAXnR3hAW9q/cyJU1iSA4c/GH7qxe9KLqpdHbn7o0AdqoQ/OyH6kQXPj3x+JyzI3QrTa4Okk1NMxtgDLgvwHCaNn114rh7yLHIsDSftYAhvAROcLpAllmJQrnZhwBQZROF7AqR+J9uZ83qFelG2S0xc3dgMigVjkP/5d3xxWNaPM4=</X509Certificate></X509Data></KeyInfo></Signature></r:issuer></r:license></msrel:RelData></KeyInfo></Signature></asmv1:assembly>

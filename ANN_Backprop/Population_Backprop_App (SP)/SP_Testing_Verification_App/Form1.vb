@@ -1,0 +1,437 @@
+﻿Imports System.IO
+
+Public Class Form1
+    'ANN - We are using the ANN portion of the Backprop object, adds continuity across programs on how ANN works
+    Dim ANN As ANN.ANN
+
+    Dim DesiredOutputs() As String
+    Dim StockNames() As String
+    Dim countStocks As Integer
+
+    Private Sub Button1_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnDataFileLocation.Click
+        If OpenFileDialog2.ShowDialog = Windows.Forms.DialogResult.OK Then
+            txtDataFileLocation.Text = OpenFileDialog2.FileName
+            LoadDataFile(txtDataFileLocation.Text)
+            btnANNFileLocation.Enabled = False
+            'btnCalculate.Enabled = True
+        End If
+        If ValidateANN() Then
+            btnCalculate.Enabled = True
+            lbDataFileInputs.SelectedIndex = 0
+        Else
+            btnCalculate.Enabled = False
+        End If
+    End Sub
+
+    Private Sub btnANNFileLocation_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnANNFileLocation.Click
+        If OpenFileDialog1.ShowDialog = Windows.Forms.DialogResult.OK Then
+            txtANNFileLocation.Text = OpenFileDialog1.FileName
+            LoadANNFile(txtANNFileLocation.Text)
+            btnStockFile.Enabled = True
+            btnANNFileLocation.Enabled = False
+        End If
+        If ValidateANN() Then
+            btnCalculate.Enabled = True
+            lbDataFileInputs.SelectedIndex = 0
+        Else
+            btnCalculate.Enabled = False
+        End If
+    End Sub
+
+    Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+
+    End Sub
+
+    Public Sub LoadANNFile(ByVal filepath As String)
+        ANN = New ANN.ANN(filepath)
+        txtInputNeurons.Text = ANN.countInputNeurons
+        txtHiddenNeurons.Text = ANN.countHiddenNeurons
+        txtHiddenLayers.Text = ANN.countHiddenLayers
+        txtOutputNeurons.Text = ANN.countOutputNeurons
+    End Sub
+
+    Public Sub LoadDataFile(ByVal filepath As String)
+        Dim sr As StreamReader
+        Dim Inputs(numRowsInTextFile(filepath) - 1) As String
+        Dim tempOutputs(numRowsInTextFile(filepath) - 1)
+        ReDim DesiredOutputs(numRowsInTextFile(filepath) - 1)
+        Dim split(), line As String
+        Dim index As Integer = 0
+
+        Try
+            sr = File.OpenText(filepath)
+
+            Do Until sr.EndOfStream
+                line = sr.ReadLine
+                split = line.Split("="c)
+                Inputs(index) = split(0)
+                tempOutputs(index) = split(1)
+                index += 1
+            Loop
+
+            For i As Integer = 0 To index - 1
+                lbDataFileInputs.Items.Add(Inputs(i))
+            Next
+
+            Dim outputSplit() As String
+            For i As Integer = 0 To index - 1
+                outputSplit = tempOutputs(i).ToString.Split(","c)
+                For j As Integer = 0 To countStocks - 1
+                    If j = 0 Then
+                        DesiredOutputs(i) = StockNames(j) & ":" & outputSplit(j) & ","
+                    ElseIf j = countStocks - 1 Then
+                        DesiredOutputs(i) += StockNames(j) & ":" & outputSplit(j)
+                    Else
+                        DesiredOutputs(i) += StockNames(j) & ":" & outputSplit(j) & ","
+                    End If
+                Next
+            Next
+
+            sr.Close()
+        Catch ex As Exception
+            Throw ex
+        End Try
+    End Sub
+
+    Public Function numRowsInTextFile(ByVal filePath As String) As Integer
+        Dim sr As StreamReader = File.OpenText(filePath)
+        Dim rows As Integer = 0
+        Dim line As String
+
+        Do
+            line = sr.ReadLine
+            rows += 1
+        Loop Until sr.EndOfStream
+
+        Return rows
+
+    End Function
+
+    Private Sub lbDataFileInputs_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles lbDataFileInputs.SelectedIndexChanged
+        lbDesiredStockOutput1.Items.Clear()
+        lbDesiredStockOutput2.Items.Clear()
+        lbDesiredStockOutput3.Items.Clear()
+        lbDesiredStockOutput4.Items.Clear()
+        lbDesiredStockOutput5.Items.Clear()
+        lbStockOutput1.Items.Clear()
+        lbStockOutput2.Items.Clear()
+        lbStockOutput3.Items.Clear()
+        lbStockOutput4.Items.Clear()
+        lbStockOutput5.Items.Clear()
+
+        Dim selectedIndex As Integer = lbDataFileInputs.SelectedIndex
+        Dim stocks() As String = DesiredOutputs(selectedIndex).Split(","c)
+
+        For j As Integer = 0 To stocks.Length - 1
+            If j < 20 Then
+                lbDesiredStockOutput1.Items.Add(stocks(j))
+            ElseIf j >= 20 And j < 40 Then
+                lbDesiredStockOutput2.Items.Add(stocks(j))
+            ElseIf j >= 40 And j < 60 Then
+                lbDesiredStockOutput3.Items.Add(stocks(j))
+            ElseIf j >= 60 And j < 80 Then
+                lbDesiredStockOutput4.Items.Add(stocks(j))
+            Else
+                lbDesiredStockOutput5.Items.Add(stocks(j))
+            End If
+        Next
+
+    End Sub
+
+    Private Sub btnCalculate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCalculate.Click
+        lbStockOutput1.Items.Clear()
+        lbStockOutput2.Items.Clear()
+        lbStockOutput3.Items.Clear()
+        lbStockOutput4.Items.Clear()
+        lbStockOutput5.Items.Clear()
+
+        Dim outputs() As Double
+        Dim ActualOutputs(countStocks - 1) As String
+        Dim CalculatedOutputs(countStocks - 1) As String
+
+        If lbDataFileInputs.SelectedIndex > -1 And ValidateANN() Then
+            outputs = CalculateOutput(lbDataFileInputs.SelectedIndex)
+
+            For j As Integer = 0 To countStocks - 1
+                ActualOutputs(j) = StockNames(j) & ":" & Math.Round(outputs(j), 4)
+                If j < 20 Then
+                    lbStockOutput1.Items.Add(ActualOutputs(j))
+                ElseIf j >= 20 And j < 40 Then
+                    lbStockOutput2.Items.Add(ActualOutputs(j))
+                ElseIf j >= 40 And j < 60 Then
+                    lbStockOutput3.Items.Add(ActualOutputs(j))
+                ElseIf j >= 60 And j < 80 Then
+                    lbStockOutput4.Items.Add(ActualOutputs(j))
+                Else
+                    lbStockOutput5.Items.Add(ActualOutputs(j))
+                End If
+            Next
+        Else
+            MsgBox("Cannot Calculate Network: ANN and DataSet combination is invalid.")
+        End If
+
+    End Sub
+
+    Public Function CalculateOutput(ByVal SelectedIndex As Integer) As Double()
+        Dim s As String = lbDataFileInputs.Items(SelectedIndex).ToString
+        Dim split() As String = s.Split(","c)
+        Dim inputs(split.Length - 1) As Double
+
+        For i As Integer = 0 To split.Length - 1
+            inputs(i) = Convert.ToDouble(split(i))
+        Next
+
+        Return ANN.run(inputs)
+    End Function
+
+    Public Function ValidateANN() As Boolean
+        Dim Validated As Boolean = True
+
+        If ANN Is Nothing Then
+            Validated = False
+        ElseIf lbDataFileInputs.Items.Count = 0 Then
+            Validated = False
+        Else
+
+            If ANN.countInputNeurons <> lbDataFileInputs.Items(0).ToString.Split(","c).Length Then
+                Validated = False
+            End If
+            If ANN.countOutputNeurons <> countStocks Then
+                Validated = False
+            End If
+
+        End If
+
+        Return Validated
+    End Function
+
+    Public Sub SetStockListBoxes()
+        If countStocks > 80 Then
+            lbDesiredStockOutput2.Enabled = True
+            lbDesiredStockOutput3.Enabled = True
+            lbDesiredStockOutput4.Enabled = True
+            lbDesiredStockOutput5.Enabled = True
+            lbStockOutput2.Enabled = True
+            lbStockOutput3.Enabled = True
+            lbStockOutput4.Enabled = True
+            lbStockOutput5.Enabled = True
+        ElseIf countStocks > 60 Then
+            lbDesiredStockOutput2.Enabled = True
+            lbDesiredStockOutput3.Enabled = True
+            lbDesiredStockOutput4.Enabled = True
+            lbDesiredStockOutput5.Enabled = False
+            lbStockOutput2.Enabled = True
+            lbStockOutput3.Enabled = True
+            lbStockOutput4.Enabled = True
+            lbStockOutput5.Enabled = False
+        ElseIf countStocks > 40 Then
+            lbDesiredStockOutput2.Enabled = True
+            lbDesiredStockOutput3.Enabled = True
+            lbDesiredStockOutput4.Enabled = False
+            lbDesiredStockOutput5.Enabled = False
+            lbStockOutput2.Enabled = True
+            lbStockOutput3.Enabled = True
+            lbStockOutput4.Enabled = False
+            lbStockOutput5.Enabled = False
+        ElseIf countStocks > 20 Then
+            lbDesiredStockOutput2.Enabled = True
+            lbDesiredStockOutput3.Enabled = False
+            lbDesiredStockOutput4.Enabled = False
+            lbDesiredStockOutput5.Enabled = False
+            lbStockOutput2.Enabled = True
+            lbStockOutput3.Enabled = False
+            lbStockOutput4.Enabled = False
+            lbStockOutput5.Enabled = False
+        Else
+            lbDesiredStockOutput2.Enabled = False
+            lbDesiredStockOutput3.Enabled = False
+            lbDesiredStockOutput4.Enabled = False
+            lbDesiredStockOutput5.Enabled = False
+            lbStockOutput2.Enabled = False
+            lbStockOutput3.Enabled = False
+            lbStockOutput4.Enabled = False
+            lbStockOutput5.Enabled = False
+        End If
+    End Sub
+
+    Private Sub lbStockOutput1_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbStockOutput1.MouseClick
+        lbDesiredStockOutput1.SelectedIndex = lbStockOutput1.SelectedIndex
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        lbStockOutput2.SelectedIndex = -1
+        lbStockOutput3.SelectedIndex = -1
+        lbStockOutput4.SelectedIndex = -1
+        lbStockOutput5.SelectedIndex = -1
+    End Sub
+
+    Private Sub lbStockOutput2_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbStockOutput2.MouseClick
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput2.SelectedIndex = lbStockOutput2.SelectedIndex
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        lbStockOutput1.SelectedIndex = -1
+        lbStockOutput3.SelectedIndex = -1
+        lbStockOutput4.SelectedIndex = -1
+        lbStockOutput5.SelectedIndex = -1
+    End Sub
+
+    Private Sub lbStockOutput3_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbStockOutput3.MouseClick
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = lbStockOutput3.SelectedIndex
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        lbStockOutput2.SelectedIndex = -1
+        lbStockOutput1.SelectedIndex = -1
+        lbStockOutput4.SelectedIndex = -1
+        lbStockOutput5.SelectedIndex = -1
+    End Sub
+
+    Private Sub lbStockOutput4_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbStockOutput4.MouseClick
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = lbStockOutput4.SelectedIndex
+        lbDesiredStockOutput5.SelectedIndex = -1
+        lbStockOutput2.SelectedIndex = -1
+        lbStockOutput3.SelectedIndex = -1
+        lbStockOutput1.SelectedIndex = -1
+        lbStockOutput5.SelectedIndex = -1
+    End Sub
+
+    Private Sub lbStockOutput5_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbStockOutput5.MouseClick
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = lbStockOutput5.SelectedIndex
+        lbStockOutput2.SelectedIndex = -1
+        lbStockOutput3.SelectedIndex = -1
+        lbStockOutput4.SelectedIndex = -1
+        lbStockOutput1.SelectedIndex = -1
+    End Sub
+
+    Private Sub lbDesiredStockOutput1_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbDesiredStockOutput1.MouseClick
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        If lbStockOutput1.Items.Count > 0 Then
+            lbStockOutput1.SelectedIndex = lbDesiredStockOutput1.SelectedIndex
+            lbStockOutput2.SelectedIndex = -1
+            lbStockOutput3.SelectedIndex = -1
+            lbStockOutput4.SelectedIndex = -1
+            lbStockOutput5.SelectedIndex = -1
+        End If
+    End Sub
+
+    Private Sub lbDesiredStockOutput2_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbDesiredStockOutput2.MouseClick
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        If lbStockOutput1.Items.Count > 0 Then
+            lbStockOutput1.SelectedIndex = -1
+            lbStockOutput2.SelectedIndex = lbDesiredStockOutput2.SelectedIndex
+            lbStockOutput3.SelectedIndex = -1
+            lbStockOutput4.SelectedIndex = -1
+            lbStockOutput5.SelectedIndex = -1
+        End If
+    End Sub
+
+    Private Sub lbDesiredStockOutput3_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbDesiredStockOutput3.MouseClick
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        If lbStockOutput1.Items.Count > 0 Then
+            lbStockOutput1.SelectedIndex = -1
+            lbStockOutput2.SelectedIndex = -1
+            lbStockOutput3.SelectedIndex = lbDesiredStockOutput3.SelectedIndex
+            lbStockOutput4.SelectedIndex = -1
+            lbStockOutput5.SelectedIndex = -1
+        End If
+    End Sub
+
+    Private Sub lbDesiredStockOutput4_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbDesiredStockOutput4.MouseClick
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput1.SelectedIndex = -1
+        lbDesiredStockOutput5.SelectedIndex = -1
+        If lbStockOutput1.Items.Count > 0 Then
+            lbStockOutput1.SelectedIndex = -1
+            lbStockOutput2.SelectedIndex = -1
+            lbStockOutput3.SelectedIndex = -1
+            lbStockOutput4.SelectedIndex = lbDesiredStockOutput4.SelectedIndex
+            lbStockOutput5.SelectedIndex = -1
+        End If
+    End Sub
+
+    Private Sub lbDesiredStockOutput5_MouseClick(ByVal sender As Object, ByVal e As System.Windows.Forms.MouseEventArgs) Handles lbDesiredStockOutput5.MouseClick
+        lbDesiredStockOutput2.SelectedIndex = -1
+        lbDesiredStockOutput3.SelectedIndex = -1
+        lbDesiredStockOutput4.SelectedIndex = -1
+        lbDesiredStockOutput1.SelectedIndex = -1
+        If lbStockOutput1.Items.Count > 0 Then
+            lbStockOutput1.SelectedIndex = -1
+            lbStockOutput2.SelectedIndex = -1
+            lbStockOutput3.SelectedIndex = -1
+            lbStockOutput4.SelectedIndex = -1
+            lbStockOutput5.SelectedIndex = lbDesiredStockOutput5.SelectedIndex
+        End If
+    End Sub
+
+    Private Sub btnStockFile_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnStockFile.Click
+        If OpenFileDialog3.ShowDialog = Windows.Forms.DialogResult.OK Then
+            txtStockFile.Text = OpenFileDialog3.FileName
+            LoadStockListFile(txtStockFile.Text)
+            btnStockFile.Enabled = False
+            btnDataFileLocation.Enabled = True
+        End If
+        If ValidateANN() Then
+            btnCalculate.Enabled = True
+            lbDataFileInputs.SelectedIndex = 0
+        Else
+            btnCalculate.Enabled = False
+        End If
+
+        
+    End Sub
+
+    Public Sub LoadStockListFile(ByVal FilePath As String)
+        Dim sr As StreamReader
+        Dim line As String
+        Try
+            'The first row of the header file contains all the stocks in a comma delimited string.
+            sr = File.OpenText(FilePath)
+
+            'Read in and separate out stock names
+            line = sr.ReadLine
+            StockNames = line.Split(","c)
+            countStocks = StockNames.Length
+            SetStockListBoxes()
+        Catch ex As Exception
+            Throw ex
+        End Try
+    End Sub
+
+    Private Sub HowToUseThisProgramToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles HowToUseThisProgramToolStripMenuItem.Click
+        Dim HowToUse As String
+        HowToUse = "This program allows you to initialize and run a neural network on a set of appropriate data that has been trained using the accompanying neural network framework." & vbCrLf _
+                    & vbCrLf & "3 input files are required to test a networks data with this program: The ANN file, the Header file, and the Data file." & vbCrLf _
+                    & vbCrLf & " - The ANN file contains the actual weights and architecture of the neural network that has been trained by the accompanying neural network framework." & vbCrLf _
+                    & " - The Header file contains information regarding the output neurons, its order, and their differentiation. This ensures you are able to compare the proper relating output neurons." & vbCrLf _
+                    & " - The DATA file contains the actual data that will be run on the network. It contains all the input values for each exemplar set and their associated output values. The output values in the DATA file are compared to the actual output values of the network. The DATA file being used for verification need not be the exact same DATA file on which the network was trained, but the network architecture of the DATA file must be congruent to the network (Input/Output neuron counts must match)." _
+                    & vbCrLf _
+                    & vbCrLf & "The order the files are inputted into this program are critical, because each input file builds on the next. The program forces you to enter the ANN file first, then the Header file, then the Data file. Please note that very large ANN files and DATA files make take a several seconds to load." & vbCrLf _
+                    & vbCrLf & "When all files are loaded, you can select a row from the exemplar set input box and the accompanying desired output values will be displayed in the lower left-hand set of text boxes. To neural network on this set of exemplar data, click the 'Calculate' button. The neural network will then compute the values and load them in the upper left-hand set of text boxes. You can then select the individual outputs to compare how the network did with the desired value. Selecting an output value will also highlight the assocated output for easy comparison."
+        MsgBox(HowToUse)
+    End Sub
+
+    Private Sub ExitToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ExitToolStripMenuItem.Click
+        Close()
+    End Sub
+End Class

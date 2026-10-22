@@ -1,0 +1,16 @@
+### Backprop Identification ###
+ID=TestFracs
+File Title=TestFracs
+
+### Input Files - !!! NEVER MODIFY THIS PART !!! ###
+DO NOT MODIFY: Dataset file location=C:\Killian Intelligence Systems\Data Files\Fractions\Fractions.txt
+DO NOT MODIFY: ANN file location=0.00190109_TestFracs\0.00190109_TestFracs.ANN
+
+### Training Configuration ###
+Initial rho value=0.000000000000727
+Rho multiplier=0.950000000000000
+Rho interval=100
+Use Momentum=0
+Momentum scaler=0.300000000000000
+Simulated annealing max percent(%)=5
+Simulated annealing interval=5

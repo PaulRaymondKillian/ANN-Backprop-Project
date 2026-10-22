@@ -1,0 +1,3 @@
+Fractions.BPROP
+test.BPROP
+C:\Killian Intelligence Systems\ANN_Backprop\Backprop_Process_App_CPP\Backprop_Process_App_CPP\0.00384624_TestFracs\0.00384624_TestFracs.BPROP2

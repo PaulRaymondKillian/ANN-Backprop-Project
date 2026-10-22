@@ -1,0 +1,17 @@
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\Production_Stock_App.exe.manifest
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\Production_Stock_App.application
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\Production_Stock_App.exe
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\Production_Stock_App.pdb
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\Production_Stock_App.xml
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\ANN.dll
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\ANN.pdb
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\bin\Release\ANN.xml
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\ResolveAssemblyReference.cache
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.Form1.resources
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.Resources.resources
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.vbproj.GenerateResource.Cache
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.exe.manifest
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.application
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.exe
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.xml
+C:\Killian Intelligence Systems\Population_Backprop_App\Production_Stock_App\obj\Release\Production_Stock_App.pdb

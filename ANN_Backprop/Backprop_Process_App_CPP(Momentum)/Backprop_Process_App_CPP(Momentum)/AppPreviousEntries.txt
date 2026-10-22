@@ -1,0 +1,6 @@
+C:\Killian Intelligence Systems\Backprop_Process_App_CPP\Backprop_Process_App_CPP\0.179952_xWackyFracsx\0.179952_xWackyFracsx.BPROP
+WackyFractions.BPROP2
+Fractions.BPROP2
+C:\Killian Intelligence Systems\Backprop_Process_App_CPP\Backprop_Process_App_CPP\242.375_xTestx\242.375_xTestx.BPROP
+test2.BPROP2
+test.BPROP2

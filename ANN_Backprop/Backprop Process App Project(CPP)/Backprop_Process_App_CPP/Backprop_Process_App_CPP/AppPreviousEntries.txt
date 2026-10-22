@@ -1,0 +1,4 @@
+C:\Backprop Process App Project(CPP)\BPROP\Fractions.BPROP
+C:\Backprop Process App Project(CPP)\BPROP\Multiplication.BPROP
+C:\Backprop Process App Project(CPP)\BPROP\Cosine.BPROP
+C:\Backprop Process App Project(CPP)\ComplexData.BPROP
